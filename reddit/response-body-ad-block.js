@@ -20,13 +20,23 @@ try {
     body.data.homeV3.elements.edges = body.data.homeV3.elements.edges.filter(
       i => !i?.node?.cells?.some(j => j?.__typename === 'AdMetadataCell')
     );
-    body.data.homeV3.elements.edges = body.data.homeV3.elements.edges.filter(
-      edge => !edge.node.adPayload
+    body.data.homeV3.elements.edges = body.data.homeV3.elements.edges.map(
+      edge => {
+      if (edge.node.adPayload) {
+        edge.node.adPayload = null;
+      }
+      return edge;
+      }
     );
     modified = true;
   } else if (body?.data?.popularV3?.elements?.edges) {
-    body.data.popularV3.elements.edges = body.data.popularV3.elements.edges.filter(
-      edge => !edge.node.adPayload
+    body.data.popularV3.elements.edges = body.data.popularV3.elements.edges.map(
+      edge => {
+      if (edge.node.adPayload) {
+        edge.node.adPayload = null;
+      }
+      return edge;
+      }
     );
     modified = true;
   } else if ($response.body.includes('"isNsfw"')) {
