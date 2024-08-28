@@ -6,19 +6,25 @@ let obj = JSON.parse($response.body);
 
 if (obj.data) {
   if (obj.data?.home?.elements?.edges) {
-    // Home
+    // home
     obj.data.home.elements.edges = obj.data.home.elements.edges.filter(
       (i) => !i?.node?.__typename?.includes("AdPost")
     );
   } else if (obj.data?.homeV3?.elements?.edges) {
-    // HomeV3
+    // homeV3
     obj.data.homeV3.elements.edges = obj.data.homeV3.elements.edges.filter(
       (i) => i?.node?.adPayload === null
     );
   } else if (obj.data?.popularV3?.elements?.edges) {
-    // Popular
+    // popularV3
     obj.data.popularV3.elements.edges =
       obj.data.popularV3.elements.edges.filter(
+        (i) => i?.node?.adPayload === null
+      );
+  } else if (obj.data?.newsV3?.elements?.edges) {
+    // newsV3
+    obj.data.newsV3.elements.edges =
+      obj.data.newsV3.elements.edges.filter(
         (i) => i?.node?.adPayload === null
       );
   } else if (obj.data?.subredditInfoByName?.elements?.edges) {
