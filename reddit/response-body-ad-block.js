@@ -1,42 +1,25 @@
-// source: https://raw.githubusercontent.com/Zz1xuan/ONE/main/Script/AD/reddit.js 
-//Reddit 过滤推广, 关 subreddit 的 NSFW 提示
+// source: https://raw.githubusercontent.com/fmz200/wool_scripts/774ca5d0c9b5f812a9dd5c4b9629f5b78602a055/Scripts/reddit.js
+// Reddit过滤推广，关NSFW提示
 
-if (!$response.body) $done({});
-let obj = JSON.parse($response.body);
-
-if (obj.data) {
-  if (obj.data?.home?.elements?.edges) {
-    // home
-    obj.data.home.elements.edges = obj.data.home.elements.edges.filter(
-      (i) => !i?.node?.__typename?.includes("AdPost")
-    );
-  } else if (obj.data?.homeV3?.elements?.edges) {
-    // homeV3
-    obj.data.homeV3.elements.edges = obj.data.homeV3.elements.edges.filter(
-      (i) => i?.node?.adPayload === null
-    );
-  } else if (obj.data?.popularV3?.elements?.edges) {
-    // popularV3
-    obj.data.popularV3.elements.edges =
-      obj.data.popularV3.elements.edges.filter(
-        (i) => i?.node?.adPayload === null
-      );
-  } else if (obj.data?.newsV3?.elements?.edges) {
-    // newsV3
-    obj.data.newsV3.elements.edges =
-      obj.data.newsV3.elements.edges.filter(
-        (i) => i?.node?.adPayload === null
-      );
-  } else if (obj.data?.subredditInfoByName?.elements?.edges) {
-    obj.data.subredditInfoByName.elements.edges =
-      obj.data.subredditInfoByName.elements.edges.filter(
-        (i) => !i?.node?.__typename?.includes("AdPost")
-      );
-  } else if (obj.data?.subredditsInfoByNames) {
-    obj.data.subredditsInfoByNames = obj.data.subredditsInfoByNames.map(
-      (i) => ({ ...i, isNsfw: false })
-    );
+let body;
+try {
+  body = JSON.parse($response.body.replace(/"isNsfw":true/g, '"isNsfw":false'))
+  if (body.data?.children?.commentsPageAds) {
+    body.data.children.commentsPageAds = []
   }
-}
+  for (const [k, v] of Object.entries(body.data)) {
+    if (v?.elements?.edges) {
+      body.data[k].elements.edges = v.elements.edges.filter(
+        i =>
+          !['AdPost'].includes(i?.node?.__typename) &&
+          !i?.node?.cells?.some(j => j?.__typename === 'AdMetadataCell') &&
+          !i?.node?.adPayload
+      );
+    }
+  }
 
-$done({ body: JSON.stringify(obj) });
+} catch (e) {
+  console.log(e);
+} finally {
+  $done(body ? {body: JSON.stringify(body)} : {});
+}
