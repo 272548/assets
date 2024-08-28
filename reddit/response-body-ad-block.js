@@ -2,40 +2,35 @@
 //Reddit 过滤推广, 关 subreddit 的 NSFW 提示
 
 if (!$response.body) $done({});
+let obj = JSON.parse($response.body);
 
-let modified;
-let body;
-try {
-  body = JSON.parse(JSON.stringify(body).replace(/\"isNsfw\": true/gi, '"isNsfw": false'));
-  if (body?.data?.subredditInfoByName?.elements?.edges) {
-    body.data.subredditInfoByName.elements.edges =
-      body.data.subredditInfoByName.elements.edges.filter(
-        i => i?.node?.__typename !== 'AdPost'
+if (obj.data) {
+  if (obj.data?.home?.elements?.edges) {
+    // Home
+    obj.data.home.elements.edges = obj.data.home.elements.edges.filter(
+      (i) => !i?.node?.__typename?.includes("AdPost")
+    );
+  } else if (obj.data?.homeV3?.elements?.edges) {
+    // HomeV3
+    obj.data.homeV3.elements.edges = obj.data.homeV3.elements.edges.filter(
+      (i) => i?.node?.adPayload === null
+    );
+  } else if (obj.data?.popularV3?.elements?.edges) {
+    // Popular
+    obj.data.popularV3.elements.edges =
+      obj.data.popularV3.elements.edges.filter(
+        (i) => i?.node?.adPayload === null
       );
-    modified = true;
-  } else if (body?.data?.home?.elements?.edges) {
-    body.data.home.elements.edges = body.data.home.elements.edges.filter(
-      i => i?.node?.__typename !== 'AdPost'
+  } else if (obj.data?.subredditInfoByName?.elements?.edges) {
+    obj.data.subredditInfoByName.elements.edges =
+      obj.data.subredditInfoByName.elements.edges.filter(
+        (i) => !i?.node?.__typename?.includes("AdPost")
+      );
+  } else if (obj.data?.subredditsInfoByNames) {
+    obj.data.subredditsInfoByNames = obj.data.subredditsInfoByNames.map(
+      (i) => ({ ...i, isNsfw: false })
     );
-    modified = true;
-  } else if (body?.data?.homeV3?.elements?.edges) {
-    body.data.homeV3.elements.edges = body.data.homeV3.elements.edges.filter(
-      i => !i?.node?.cells?.some(j => j?.__typename === 'AdMetadataCell')
-    );
-    body.data.homeV3.elements.edges = body.data.homeV3.elements.edges.filter(
-      (i) => i?.node?.adPayload === null
-    );
-    modified = true;
-  } else if (body?.data?.popularV3?.elements?.edges) {
-    body.data.popularV3.elements.edges = body.data.popularV3.elements.edges.filter(
-      (i) => i?.node?.adPayload === null
-    );
-    modified = true;
-  } else if ($response.body.includes('"isNsfw"')) {
-    modified = true;
   }
-} catch (e) {
-  console.log(e)
-} finally {
-  $done(modified ? { body: JSON.stringify(body) } : {});
 }
+
+$done({ body: JSON.stringify(obj) });
