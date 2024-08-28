@@ -20,7 +20,7 @@ try {
     body.data.homeV3.elements.edges = body.data.homeV3.elements.edges.filter(
       i => !i?.node?.cells?.some(j => j?.__typename === 'AdMetadataCell')
     );
-    body.data.popularV3.elements.edges = body.data.popularV3.elements.edges.filter(
+    body.data.homeV3.elements.edges = body.data.homeV3.elements.edges.filter(
       edge => !edge.node.adPayload
     );
     modified = true;
