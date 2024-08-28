@@ -1,10 +1,12 @@
 // source: https://raw.githubusercontent.com/Zz1xuan/ONE/main/Script/AD/reddit.js 
 //Reddit 过滤推广, 关 subreddit 的 NSFW 提示
 
+if (!$response.body) $done({});
+
 let modified;
 let body;
 try {
-  body = JSON.parse($response.body.replace(/\"isNsfw\"/gi, '"_isNsfw"'));
+  body = JSON.parse(JSON.stringify(body).replace(/\"isNsfw\": true/gi, '"isNsfw": false'));
   if (body?.data?.subredditInfoByName?.elements?.edges) {
     body.data.subredditInfoByName.elements.edges =
       body.data.subredditInfoByName.elements.edges.filter(
@@ -20,23 +22,13 @@ try {
     body.data.homeV3.elements.edges = body.data.homeV3.elements.edges.filter(
       i => !i?.node?.cells?.some(j => j?.__typename === 'AdMetadataCell')
     );
-    body.data.homeV3.elements.edges = body.data.homeV3.elements.edges.map(
-      edge => {
-      if (edge.node.adPayload) {
-        edge.node.adPayload = null;
-      }
-      return edge;
-      }
+    body.data.homeV3.elements.edges = body.data.homeV3.elements.edges.filter(
+      (i) => i?.node?.adPayload === null
     );
     modified = true;
   } else if (body?.data?.popularV3?.elements?.edges) {
-    body.data.popularV3.elements.edges = body.data.popularV3.elements.edges.map(
-      edge => {
-      if (edge.node.adPayload) {
-        edge.node.adPayload = null;
-      }
-      return edge;
-      }
+    body.data.popularV3.elements.edges = body.data.popularV3.elements.edges.filter(
+      (i) => i?.node?.adPayload === null
     );
     modified = true;
   } else if ($response.body.includes('"isNsfw"')) {
